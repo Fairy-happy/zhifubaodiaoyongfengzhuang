@@ -9,13 +9,27 @@
 #import "AlipayRequestConfig.h"
 
 @implementation AlipayRequestConfig
-//仅含有变化的参数
-+(void)alipayWithPartner:(NSString *)partner seller:(NSString *)seller tradeNO:(NSString *)tradeNO productName:(NSString *)productName productDescription:(NSString *)productDescription amount:(NSString *)amount notifyURL:(NSString *)notifyURL itBPay:(NSString *)itBPay
+//仅含有变化的参数，block返回回调参数
++(void)alipayWithPartner:(NSString *)partner seller:(NSString *)seller tradeNO:(NSString *)tradeNO productName:(NSString *)productName productDescription:(NSString *)productDescription amount:(NSString *)amount notifyURL:(NSString *)notifyURL itBPay:(NSString *)itBPay completionblock:(PayCompletionBlock)completionBlock
 {
-    [self alipayWithPartner:partner seller:seller tradeNO:tradeNO productName:productName productDescription:productDescription amount:amount notifyURL:notifyURL service:@"mobile.securitypay.pay" paymentType:@"1" inputCharset:@"UTF-8" itBPay:itBPay privateKey:kPrivateKey appScheme:kAppScheme];
+    //partner和seller获取失败,提示
+//    if ([kPartnerID length] == 0 ||
+//        [kSellerAccount length] == 0 ||
+//        [kPrivateKey length] == 0)
+//    {
+//        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提示"
+//                                                        message:@"缺少partner或者seller或者私钥。"
+//                                                       delegate:self
+//                                              cancelButtonTitle:@"确定"
+//                                              otherButtonTitles:nil];
+//        [alert show];
+//        return;
+//    }
+
+    [self alipayWithPartner:partner seller:seller tradeNO:tradeNO productName:productName productDescription:productDescription amount:amount notifyURL:notifyURL service:@"mobile.securitypay.pay" paymentType:@"1" inputCharset:@"UTF-8" itBPay:itBPay privateKey:kPrivateKey appScheme:kAppScheme completionblock:completionBlock];
 }
 
-+(void)alipayWithPartner:(NSString *)partner seller:(NSString *)seller tradeNO:(NSString *)tradeNO productName:(NSString *)productName productDescription:(NSString *)productDescription amount:(NSString *)amount notifyURL:(NSString *)notifyURL service:(NSString *)service paymentType:(NSString *)paymentType inputCharset:(NSString *)inputCharset itBPay:(NSString *)itBPay privateKey:(NSString *)privateKey appScheme:(NSString *)appScheme
++(void)alipayWithPartner:(NSString *)partner seller:(NSString *)seller tradeNO:(NSString *)tradeNO productName:(NSString *)productName productDescription:(NSString *)productDescription amount:(NSString *)amount notifyURL:(NSString *)notifyURL service:(NSString *)service paymentType:(NSString *)paymentType inputCharset:(NSString *)inputCharset itBPay:(NSString *)itBPay privateKey:(NSString *)privateKey appScheme:(NSString *)appScheme completionblock:(PayCompletionBlock)completionBlock
 {
     Order *order = [Order order];
     order.partner = partner;
@@ -36,7 +50,7 @@
     //获取私钥并将商户信息签名，外部商户可以根据情况存放私钥和签名，只需要遵循RSA签名规范，并将签名字符串base64编码和UrlEncode
     NSString * signedString = [self SignedSteingWithPrivateKey:kPrivateKey OrderSpec:orderSpec];
     //调用支付接口
-    [self payWithAppScheme:appScheme orderSpec:orderSpec signedString:signedString];
+    [self payWithAppScheme:appScheme orderSpec:orderSpec signedString:signedString completionblock:completionBlock];
 }
 
 //生成signedString
@@ -48,7 +62,7 @@
 }
 
 //支付
-+(void)payWithAppScheme:(NSString *)appScheme orderSpec:(NSString *)orderSpec signedString:(NSString *)signedString
++(void)payWithAppScheme:(NSString *)appScheme orderSpec:(NSString *)orderSpec signedString:(NSString *)signedString completionblock:(PayCompletionBlock)completionBlock
 {
     //将签名成功字符串格式化为订单字符串，请严格按照该格式
     NSString * orderString = nil;
@@ -56,7 +70,7 @@
         orderString = [NSString stringWithFormat:@"%@&sign=\"%@\"&sign_type=\"%@\"", orderSpec, signedString, @"RSA"];
         [[AlipaySDK defaultService] payOrder:orderString fromScheme:appScheme callback:^(NSDictionary *resultDic) {
             NSLog(@"reslut = %@",resultDic);
-
+            completionBlock(resultDic);
         }];
     }
 }

@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "zhifubaoHeader.h"
-
+typedef void(^PayCompletionBlock)(id result);
 @interface AlipayRequestConfig : NSObject
 /**
  *  配置请求信息，仅有变化且必要的参数
@@ -23,7 +23,7 @@
  *  @param itBPay             未付款交易的超时时间
  */
 
-+(void)alipayWithPartner:(NSString *)partner seller:(NSString *)seller tradeNO:(NSString *)tradeNO productName:(NSString *)productName productDescription:(NSString *)productDescription amount:(NSString *)amount notifyURL:(NSString *)notifyURL itBPay:(NSString *)itBPay;
++(void)alipayWithPartner:(NSString *)partner seller:(NSString *)seller tradeNO:(NSString *)tradeNO productName:(NSString *)productName productDescription:(NSString *)productDescription amount:(NSString *)amount notifyURL:(NSString *)notifyURL itBPay:(NSString *)itBPay completionblock:(PayCompletionBlock)completionBlock;
 
 
 @end
